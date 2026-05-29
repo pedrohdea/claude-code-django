@@ -29,8 +29,41 @@ We even use Claude Code for ticket triage. It reads the ticket, digs into the co
 
 ---
 
+## Django + Vue Boilerplate
+
+This repository also ships a working **fullstack boilerplate** that the Claude Code
+configuration above is tuned for: **Django 6 + DRF** on the backend and **Vue 3 + Vite 8**
+on the frontend. The environment is **auto-incremental** — it comes up in idempotent steps
+and new capabilities are added as numbered increments.
+
+### Stack (pinned — May 2026)
+
+- **Backend (`backend/`):** Python 3.13 · Django 6.0 · DRF 3.16 · SimpleJWT · drf-spectacular (OpenAPI) · PostgreSQL (psycopg 3) · gunicorn · pytest · ruff · mypy
+- **Frontend (`frontend/`):** Node 22 · Vue 3.5 · Vite 8 (Rolldown) · Pinia · Vue Router · Axios · Vitest · ESLint + Prettier
+
+### Quick Start
+
+```bash
+make bootstrap   # idempotent: creates venv, installs deps, runs migrations, writes .env
+make dev         # runs backend + frontend
+```
+
+- Backend → http://localhost:8000 (API under `/api/`, docs at `/api/schema/swagger-ui/`)
+- Frontend → http://localhost:5173
+
+### Auto-incremental philosophy
+
+- `scripts/bootstrap.sh` is **idempotent**: it detects what already exists and only does what's missing.
+- Each new capability is a numbered `scripts/increments/NNN_name.sh`, recorded in `scripts/increments/STATE` (applied steps never re-run).
+- `make increment` applies only the pending increments.
+
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/INCREMENTS.md](docs/INCREMENTS.md), and [best_practices.md](best_practices.md) for the full picture.
+
+---
+
 ## Table of Contents
 
+- [Django + Vue Boilerplate](#django--vue-boilerplate)
 - [Directory Structure](#directory-structure)
 - [Quick Start](#quick-start)
 - [Working with Worktrees](#working-with-worktrees)

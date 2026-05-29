@@ -1,0 +1,13 @@
+-r requirements.txt
+
+# --- Tests ---
+pytest==8.3.5
+pytest-django==4.11.1
+pytest-cov==6.1.1
+factory-boy==3.3.3
+
+# --- Quality ---
+ruff==0.13.0
+mypy==1.15.0
+django-stubs==5.1.3
+djangorestframework-stubs==3.16.0

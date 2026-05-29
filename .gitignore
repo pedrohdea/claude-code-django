@@ -26,3 +26,16 @@ Thumbs.db
 .claude/tasks/
 CLAUDE.local.md
 *~
+
+# --- merged from boilerplate-django-vue ---
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+db.sqlite3
+staticfiles/
+# Misc
+.coverage
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
