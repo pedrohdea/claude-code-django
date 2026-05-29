@@ -89,6 +89,13 @@ Before implementing ANY task, check if relevant skills apply:
 - Checking docs accuracy → `docs-sync` skill
 - Committing worktree changes and merging to master/main → `worktree-commit-merge` skill
 
+## Personal AI Training
+
+The file `PERSONAL.md` contains instructions for acting as the user's AI practices coach (assess level,
+teach Claude Code tools, suggest AI artifacts). It self-activates on normal interactions based on the
+configurable `chance_de_ativacao` (default 1%) defined in that file, and always activates when the user
+references `@PERSONAL.md` or explicitly asks to train. Follow the protocol in `PERSONAL.md` when activated.
+
 ## Common Commands
 
 ```bash
