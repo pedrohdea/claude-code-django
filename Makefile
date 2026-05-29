@@ -1,4 +1,4 @@
-.PHONY: bootstrap dev backend frontend migrate test lint increment clean
+.PHONY: bootstrap dev backend frontend migrate test lint increment slides clean
 
 bootstrap:        ## Sobe todo o ambiente (idempotente)
 	@bash scripts/bootstrap.sh
@@ -25,6 +25,9 @@ lint:
 
 increment:        ## Aplica increments pendentes
 	@bash scripts/apply_increments.sh
+
+slides:           ## Sobe os slides reveal.js em http://localhost:8000/slides/
+	@cd docs/slides && (test -d node_modules || npm install --no-audit --no-fund) && npm start
 
 clean:
 	@rm -rf backend/.venv frontend/node_modules backend/db.sqlite3

@@ -1,0 +1,13 @@
+{
+  "name": "claude-code-django-slides",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Slides reveal.js do workshop — carrega docs/APRESENTATION.md como fonte única",
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs"
+  },
+  "dependencies": {
+    "reveal.js": "^5.2.1"
+  }
+}

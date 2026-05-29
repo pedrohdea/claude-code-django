@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Workshop — Arquitetura de IA com Claude</title>
+
+    <link rel="stylesheet" href="./node_modules/reveal.js/dist/reset.css" />
+    <link rel="stylesheet" href="./node_modules/reveal.js/dist/reveal.css" />
+    <link rel="stylesheet" href="./node_modules/reveal.js/dist/theme/black.css" id="theme" />
+    <link rel="stylesheet" href="./node_modules/reveal.js/plugin/highlight/monokai.css" />
+
+    <style>
+      :root {
+        --c-accent: #42affa;
+        --c-strong: #ffd866;
+        --c-code: #78dce8;
+        --c-link: #ff6188;
+      }
+
+      .reveal { font-size: 30px; font-weight: 400; }
+
+      /* ---- conteúdo (corpo dos capítulos) ---- */
+      .reveal h1, .reveal h2, .reveal h3 { text-transform: none; line-height: 1.15; }
+      .reveal h1 {
+        font-size: 1.55em;
+        background: linear-gradient(90deg, var(--c-accent), var(--c-link));
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 0.45em;
+      }
+      /* todos os slides: centralizados vertical e horizontalmente na área útil */
+      .reveal .slides section {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        box-sizing: border-box;
+      }
+      .reveal .slides section:not(.interstitial) {
+        text-align: left;
+        align-items: center;
+        scrollbar-width: thin;
+      }
+      /* conteúdo do capítulo em DUAS COLUNAS para reduzir a altura dos parágrafos */
+      .reveal .cols {
+        width: 100%;
+        column-count: 2;
+        column-gap: 1.6em;
+        text-align: left;
+      }
+      /* título, tabelas e código ocupam a largura inteira (não dividem) */
+      .reveal .cols > h1,
+      .reveal .cols > h2 { column-span: all; }
+      .reveal .cols > table,
+      .reveal .cols > pre { column-span: all; break-inside: avoid; }
+      /* não quebra parágrafo/citação no meio entre colunas */
+      .reveal .cols > p,
+      .reveal .cols > blockquote { break-inside: avoid; }
+      /* listas longas podem fluir entre colunas, mas sem cortar um item */
+      .reveal .cols li { break-inside: avoid; }
+      /* fallback: se nem na fonte mínima couber, alinha ao topo e rola */
+      .reveal .slides section.overflowing {
+        justify-content: flex-start;
+        overflow-y: auto;
+      }
+      .reveal strong { color: var(--c-strong); }
+      .reveal em { color: #ab9df2; font-style: italic; }
+      .reveal code { color: var(--c-code); }
+      .reveal a { color: var(--c-link); }
+      .reveal ul, .reveal ol { width: 100%; }
+      .reveal li { margin: 0.14em 0; }
+      .reveal li::marker { color: var(--c-accent); }
+
+      .reveal table { font-size: 0.6em; margin: 0.4em 0; border-collapse: collapse; width: 100%; }
+      .reveal table th {
+        background: linear-gradient(90deg, rgba(66,175,250,0.35), rgba(255,97,136,0.30));
+        color: #fff; border: none; padding: 0.28em 0.6em;
+      }
+      .reveal table td { padding: 0.22em 0.6em; border-bottom: 1px solid rgba(255,255,255,0.12); }
+      .reveal table tr:nth-child(even) td { background: rgba(255,255,255,0.04); }
+
+      .reveal pre { width: 100%; box-shadow: none; }
+      .reveal pre code { font-size: 0.62em; line-height: 1.3; max-height: none; padding: 0.8em; border-radius: 8px; }
+
+      .reveal blockquote {
+        width: 100%;
+        font-style: italic;
+        border: none;
+        border-left: 5px solid var(--c-accent);
+        background: rgba(66,175,250,0.10);
+        padding: 0.5em 0.9em;
+        border-radius: 0 10px 10px 0;
+      }
+
+      /* ---- slides "interstitial": capa, abertura, gancho ---- */
+      /* center:false faz o Reveal alinhar ao topo; como a section é
+         position:absolute sem altura, fixamos top+bottom para esticá-la em
+         toda a altura do palco e o flex centraliza verticalmente. */
+      .reveal .slides section.interstitial {
+        top: 0 !important;
+        bottom: 0 !important;
+        height: auto !important;
+        display: flex !important;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 0 6%;
+      }
+      .interstitial .kicker {
+        font-size: 0.62em;
+        text-transform: uppercase;
+        letter-spacing: 0.22em;
+        font-weight: 700;
+        color: rgba(255,255,255,0.92);
+        margin-bottom: 0.7em;
+        text-shadow: 0 2px 8px rgba(0,0,0,0.35);
+      }
+      .interstitial .big {
+        font-size: 1.55em;
+        font-weight: 800;
+        line-height: 1.18;
+        color: #fff;
+        text-shadow: 0 3px 18px rgba(0,0,0,0.40);
+        max-width: 16em;
+      }
+      .interstitial .big code {
+        color: #fff;
+        background: rgba(255,255,255,0.18);
+        padding: 0 0.25em;
+        border-radius: 6px;
+      }
+      .interstitial .big em { color: #fff; opacity: 0.95; }
+      .interstitial .mark {
+        font-size: 2.4em;
+        line-height: 1;
+        margin-bottom: 0.15em;
+        color: rgba(255,255,255,0.95);
+        text-shadow: 0 3px 18px rgba(0,0,0,0.4);
+      }
+      /* abertura e gancho: ocupam a página inteira */
+      .interstitial.abertura,
+      .interstitial.gancho { padding: 0 4%; }
+      .interstitial.abertura .big,
+      .interstitial.gancho .big {
+        font-size: 2.3em;
+        max-width: none;
+        width: 100%;
+      }
+
+      /* capa */
+      .interstitial.cover .title {
+        font-size: 1.9em;
+        font-weight: 800;
+        line-height: 1.1;
+        color: #fff;
+        text-shadow: 0 4px 24px rgba(0,0,0,0.45);
+      }
+      .interstitial.cover .subtitle {
+        font-size: 0.85em;
+        margin-top: 0.7em;
+        color: rgba(255,255,255,0.95);
+        max-width: 22em;
+      }
+      .interstitial.cover .principle {
+        margin-top: 1.1em;
+        font-size: 0.6em;
+        font-style: italic;
+        color: rgba(255,255,255,0.9);
+        border-top: 2px solid rgba(255,255,255,0.4);
+        padding-top: 0.7em;
+      }
+      .interstitial.cover .author {
+        margin-top: 1.2em;
+        font-size: 0.72em;
+        line-height: 1.4;
+        color: #fff;
+      }
+      .interstitial.cover .author .name { font-weight: 700; }
+      .interstitial.cover .author .company {
+        font-size: 0.85em;
+        opacity: 0.9;
+        letter-spacing: 0.04em;
+      }
+
+      .reveal .slide-number { background: rgba(0,0,0,0.35); }
+    </style>
+  </head>
+  <body>
+    <div class="reveal">
+      <div class="slides" id="slides"></div>
+    </div>
+
+    <script src="./node_modules/reveal.js/dist/reveal.js"></script>
+    <script src="./node_modules/reveal.js/plugin/markdown/markdown.js"></script>
+    <script src="./node_modules/reveal.js/plugin/highlight/highlight.js"></script>
+    <script src="./node_modules/reveal.js/plugin/notes/notes.js"></script>
+
+    <script>
+      // converte marcação inline simples (negrito/itálico/código) para HTML,
+      // usada nos slides de abertura/gancho/capa (que são HTML, não markdown).
+      function inlineMd(s) {
+        return s
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+          .replace(/\*(.+?)\*/g, "<em>$1</em>")
+          .replace(/`(.+?)`/g, "<code>$1</code>");
+      }
+
+      // paleta procedural: cada capítulo recebe um "hue" que avança, dando uma
+      // jornada colorida coerente (abertura/corpo/gancho da mesma família).
+      function grad(hue, kind) {
+        const h2 = (hue + 45) % 360;
+        if (kind === "bright")
+          return `linear-gradient(135deg, hsl(${hue},85%,56%), hsl(${h2},82%,46%))`;
+        if (kind === "bright-alt")
+          return `linear-gradient(135deg, hsl(${(hue + 30) % 360},84%,53%), hsl(${(hue + 90) % 360},80%,47%))`;
+        // corpo: escuro mas tingido com a cor do capítulo
+        return `linear-gradient(135deg, hsl(${hue},46%,13%), hsl(${(hue + 35) % 360},52%,8%))`;
+      }
+
+      function addSection(slides, { cls, transition, gradient, html }) {
+        const section = document.createElement("section");
+        if (cls) section.className = cls;
+        if (transition) section.setAttribute("data-transition", transition);
+        if (gradient) section.setAttribute("data-background-gradient", gradient);
+        if (html !== undefined) section.innerHTML = html;
+        slides.appendChild(section);
+        return section;
+      }
+
+      function addMarkdownSection(slides, markdown, gradient) {
+        const section = document.createElement("section");
+        section.setAttribute("data-markdown", "");
+        if (gradient) section.setAttribute("data-background-gradient", gradient);
+        const tpl = document.createElement("script");
+        tpl.setAttribute("type", "text/template");
+        tpl.textContent = markdown;
+        section.appendChild(tpl);
+        slides.appendChild(section);
+        return section;
+      }
+
+      fetch("../APRESENTATION.md")
+        .then((r) => {
+          if (!r.ok) throw new Error("Não consegui carregar APRESENTATION.md (HTTP " + r.status + ")");
+          return r.text();
+        })
+        .then((md) => {
+          const chunks = md.split(/\n(?=# )/);
+          const slides = document.getElementById("slides");
+          let chapterHue = 205; // ponto de partida (azul)
+          const HUE_STEP = 27;
+
+          chunks.forEach((chunk, idx) => {
+            if (!chunk.trim()) return;
+
+            const heading = (chunk.match(/^#\s+(.+)$/m) || [])[1] || "";
+            const abertura = (chunk.match(/^\*\*Abertura\.\*\*\s*(.+)$/m) || [])[1];
+            const gancho = (chunk.match(/^\*\*Gancho\.\*\*\s*(.+)$/m) || [])[1];
+
+            // corpo = capítulo sem as linhas de abertura/gancho
+            const body = chunk
+              .replace(/^\*\*Abertura\.\*\*.*$/m, "")
+              .replace(/^\*\*Gancho\.\*\*.*$/m, "")
+              .replace(/\n{3,}/g, "\n\n")
+              .trim();
+
+            // ---- 1º bloco: capa ----
+            if (idx === 0) {
+              addSection(slides, {
+                cls: "interstitial cover",
+                transition: "zoom",
+                gradient: "linear-gradient(135deg, hsl(265,80%,55%), hsl(330,82%,52%), hsl(200,85%,50%))",
+                html:
+                  `<div class="title">${inlineMd(heading)}</div>` +
+                  `<div class="subtitle">Tratando os <strong>artefatos de IA</strong> do Claude Code como ` +
+                  `<strong>infraestrutura versionada</strong> — em um boilerplate real Django&nbsp;6 + Vue&nbsp;3.</div>` +
+                  `<div class="principle">a IA se adapta ao seu projeto, não o contrário</div>` +
+                  `<div class="author"><div class="name">Pedro Henrique de Assumpção</div>` +
+                  `<div class="company">Beemôn Tecnologia</div></div>`,
+              });
+              return;
+            }
+
+            // seção sem abertura/gancho (Resumo, Conclusão, Next Steps...)
+            if (!abertura && !gancho) {
+              if (!body || /^#\s+.+$/.test(body) && body.split("\n").length <= 1) return; // pula vazios (ex.: Índice)
+              addMarkdownSection(slides, body, grad(chapterHue, "dark"));
+              chapterHue = (chapterHue + HUE_STEP) % 360;
+              return;
+            }
+
+            // ---- capítulo: abertura -> corpo -> gancho ----
+            const hue = chapterHue;
+
+            if (abertura) {
+              addSection(slides, {
+                cls: "interstitial abertura",
+                transition: "zoom",
+                gradient: grad(hue, "bright"),
+                html: `<div class="kicker">${inlineMd(heading)}</div><div class="big">${inlineMd(abertura)}</div>`,
+              });
+            }
+
+            if (body) {
+              addMarkdownSection(slides, body, grad(hue, "dark"));
+            }
+
+            if (gancho) {
+              addSection(slides, {
+                cls: "interstitial gancho",
+                transition: "concave",
+                gradient: grad(hue, "bright-alt"),
+                html: `<div class="big">${inlineMd(gancho)}</div>`,
+              });
+            }
+
+            chapterHue = (chapterHue + HUE_STEP) % 360;
+          });
+
+          Reveal.initialize({
+            hash: true,
+            slideNumber: "c/t",
+            center: false,
+            width: 1280,
+            height: 720,
+            margin: 0.06,
+            transition: "slide",
+            backgroundTransition: "fade",
+            plugins: [RevealMarkdown, RevealHighlight, RevealNotes],
+          });
+
+          // auto-fit: reduz a fonte do slide de conteúdo até caber na altura
+          // útil (720). Só roda no slide visível (medição precisa de layout).
+          const VIEW_H = 720;
+          function fitSlide(section) {
+            if (!section || section.classList.contains("interstitial")) return;
+            section.classList.remove("overflowing");
+            let size = 32;
+            section.style.fontSize = size + "px";
+            while (section.scrollHeight > VIEW_H && size > 13) {
+              size -= 1;
+              section.style.fontSize = size + "px";
+            }
+            if (section.scrollHeight > VIEW_H) section.classList.add("overflowing");
+          }
+          // envolve o conteúdo renderizado de cada capítulo num container .cols
+          // (duas colunas). Roda uma vez, após o markdown ter sido renderizado.
+          function wrapColumns(section) {
+            if (section.classList.contains("interstitial")) return;
+            if (section.querySelector(":scope > .cols")) return;
+            const cols = document.createElement("div");
+            cols.className = "cols";
+            while (section.firstChild) cols.appendChild(section.firstChild);
+            section.appendChild(cols);
+          }
+
+          Reveal.on("ready", (e) => {
+            document.querySelectorAll(".reveal .slides > section").forEach(wrapColumns);
+            fitSlide(e.currentSlide);
+            // refit após fontes/layout assentarem
+            setTimeout(() => fitSlide(Reveal.getCurrentSlide()), 300);
+          });
+          Reveal.on("slidechanged", (e) => fitSlide(e.currentSlide));
+        })
+        .catch((err) => {
+          document.getElementById("slides").innerHTML =
+            '<section><h2>Erro ao carregar os slides</h2><p>' +
+            err.message +
+            "</p><p>Rode pelo servidor: <code>make slides</code></p></section>";
+          Reveal.initialize({ plugins: [RevealMarkdown] });
+        });
+    </script>
+  </body>
+</html>
