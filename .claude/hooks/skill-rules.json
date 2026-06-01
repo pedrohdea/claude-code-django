@@ -154,6 +154,19 @@
         ]
       }
     },
+    "seed-artifacts": {
+      "description": "Semeia artefatos de Claude Code deste boilerplate em outro repo",
+      "priority": 6,
+      "triggers": {
+        "keywords": ["semear", "seed", "artefatos", "artifacts", "boilerplate", "padronizar", "scaffold"],
+        "keywordPatterns": ["\\bseed.?artifacts\\b", "\\bsemear\\b", "\\bartefatos\\b"],
+        "intentPatterns": [
+          "(?:semear|copiar|popular|importar).*(?:artefatos|skills|setup|configura)",
+          "(?:popular|montar).*(?:skills|claude).*(?:repo|projeto)",
+          "(?:padronizar|scaffold).*(?:repo|projeto)"
+        ]
+      }
+    },
     "documentation": {
       "description": "Documentation and docstrings",
       "priority": 3,

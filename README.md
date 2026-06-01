@@ -758,6 +758,7 @@ Skills are markdown documents that teach Claude project-specific patterns and co
 - [code-quality](.claude/skills/code-quality/SKILL.md) - Run ruff, pyright, pytest and report findings
 - [docs-sync](.claude/skills/docs-sync/SKILL.md) - Verify docs match current code
 - [worktree-commit-merge](.claude/skills/worktree-commit-merge/SKILL.md) - Commit worktree changes and merge into master/main
+- [seed-artifacts](.claude/skills/seed-artifacts/SKILL.md) - Seed this boilerplate's Claude Code artifacts into another repo
 
 *Domain knowledge skills (auto-triggered):*
 - [skill-creator](.claude/skills/skill-creator/SKILL.md) - Guide for creating effective skills
@@ -769,6 +770,35 @@ Skills are markdown documents that teach Claude project-specific patterns and co
 - [django-templates](.claude/skills/django-templates/SKILL.md) - Template inheritance, tags, filters
 - [htmx-patterns](.claude/skills/htmx-patterns/SKILL.md) - HTMX attributes, dynamic UI
 - [celery-patterns](.claude/skills/celery-patterns/SKILL.md) - Celery tasks, retry strategies
+
+#### Seeding artifacts into another repo
+
+Use the [`seed-artifacts`](.claude/skills/seed-artifacts/SKILL.md) skill to copy this
+boilerplate's Claude Code setup (skills, agents, commands, hooks, `CLAUDE.md`, configs and
+CI workflows) into a different repository. It runs **from inside the target repo**, fetches
+the source via git, resolves conflicts file-by-file, and marks every copied artifact as
+"em fase de implantação / não validado" (with a `.claude/SEEDED.md` validation checklist).
+
+Since the skill must exist in the target repo before you can invoke it, bootstrap it once:
+
+```bash
+# 1. In the target repo, fetch only the seed-artifacts skill
+git clone --depth 1 --branch feat/import-django-vue-boilerplate \
+  git@github.com:pedro-beemon/claude-code-django.git /tmp/cc-seed \
+  && mkdir -p .claude/skills \
+  && cp -r /tmp/cc-seed/.claude/skills/seed-artifacts .claude/skills/ \
+  && rm -rf /tmp/cc-seed
+```
+
+```text
+# 2. Then, inside Claude Code (in the target repo), run the skill:
+/seed-artifacts
+# optional flags:
+/seed-artifacts --ref main --only skills,agents,hooks
+```
+
+> ℹ️ The default source ref is `feat/import-django-vue-boilerplate`; switch the bootstrap
+> branch and `--ref` to `main` once these artifacts are merged.
 
 #### SKILL.md Frontmatter Fields
 

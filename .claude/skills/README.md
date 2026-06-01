@@ -20,6 +20,7 @@ This directory contains project-specific skills that provide Claude with domain 
 | [code-quality](./code-quality/SKILL.md) | Run code quality checks and report findings by severity |
 | [docs-sync](./docs-sync/SKILL.md) | Check if documentation is in sync with code |
 | [worktree-commit-merge](./worktree-commit-merge/SKILL.md) | Commit worktree changes, merge into master/main, sync branch |
+| [seed-artifacts](./seed-artifacts/SKILL.md) | Semeia os artefatos de Claude Code deste boilerplate em outro repositório |
 
 ### Testing & Debugging
 | Skill | Description |
