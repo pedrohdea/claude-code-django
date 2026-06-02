@@ -18,8 +18,7 @@ O argumento da skill pode conter flags opcionais: `--ref <branch>` e
 
 - **Repo fonte (SSH)**: `git@github.com:pedro-beemon/claude-code-django.git`
 - **Repo fonte (HTTPS, fallback)**: `https://github.com/pedro-beemon/claude-code-django.git`
-- **Ref padrão**: `feat/import-django-vue-boilerplate`
-  (⚠️ trocar para `main` quando os artefatos forem mergeados).
+- **Ref padrão**: `main`.
 
 ## Banner de TODO (marcação "em fase de implantação")
 
@@ -78,6 +77,11 @@ A partir de `$SRC`, montar a lista de artefatos por categoria (respeitando `--on
 | `guides`   | `CLAUDE.md`, `PERSONAL.md`, `best_practices.md` |
 | `ci`       | `.github/workflows/*.yml` |
 
+> **⚠️ `configs` e `hooks` são sensíveis.** Mesmo quando **não** existem no destino, não
+> copie direto: confirme com o usuário, **mostre o conteúdo** e sinalize os conflitos
+> conhecidos (ver Passo 4b). O classificador de permissões do harness pode **bloquear** a
+> cópia de `settings.json`/`.mcp.json`/hooks executáveis sem autorização explícita.
+
 ### 4. Copiar com resolução de conflito por item
 
 Para cada arquivo destino:
@@ -90,6 +94,24 @@ Para cada arquivo destino:
 
 Use `AskUserQuestion` agrupando conflitos quando fizer sentido, mas registre a decisão
 por arquivo. Crie diretórios faltantes no destino conforme necessário.
+
+### 4b. Categorias sensíveis — confirmar antes de copiar
+
+`configs` (`settings.json`, `.mcp.json`) e `hooks` executáveis exigem **confirmação
+explícita** (via `AskUserQuestion`), com o conteúdo à vista, **mesmo sendo novos** no
+destino. Conflitos recorrentes a sinalizar:
+
+- `settings.json` → `includeCoAuthoredBy: true` conflita com projetos que proíbem
+  `Co-Authored-By`; hooks `PostToolUse` rodam `uv run …` (quebra em `pip`/poetry) e podem
+  usar `pyright`/`pytest` ausentes no destino.
+- `.mcp.json` → servidores via `npx @anthropic/mcp-*` e MCP de banco com acesso irrestrito
+  (`--access-mode=unrestricted`) — risco de segurança; confirmar caso a caso.
+- `hooks` (`skill-eval.*`, `skill-rules.json`) → só funcionam se o `settings.json` os
+  referenciar; copiados isolados ficam inertes (sem auto-ativação de skills).
+
+Oferecer 3 caminhos por item: **pular** (registrar no `SEEDED.md`), **instalar adaptado**
+(remover `includeCoAuthoredBy`, trocar `uv`→runner do destino, remover MCP arriscado) ou
+**instalar como está** (não recomendado).
 
 ### 5. Marcar cada artefato copiado (TODO "em fase de implantação")
 
@@ -145,16 +167,40 @@ deixar o rastreio apenas no `SEEDED.md`.
 
 ### 8. Relatório final
 
-Imprimir um resumo: copiados / sobrescritos / pulados / mesclados (por categoria) e os
-próximos passos:
+Imprimir um resumo: copiados / sobrescritos / pulados / mesclados (por categoria).
 
-1. Validar os itens em `.claude/SEEDED.md` (remover o banner de cada artefato ao validar).
-2. Revisar `CLAUDE.md` para a stack real do destino (o original é Django + uv + HTMX).
-3. Remover skills Django se o destino não for Django (`django-*`, `htmx-patterns`,
-   `celery-patterns`, `pytest-django-patterns`).
-4. Conferir se os hooks de auto-ativação dependem de Node/scripts e instalar o necessário.
-5. Revisar `.claude/settings.json` e `.mcp.json` (permissões, MCP servers) — não recebem
-   TODO inline.
+### 9. Validação e adaptação (obrigatória antes de remover o banner)
+
+O banner só sai **depois** de validar e adaptar o artefato ao destino. Para cada item:
+
+1. **Stack-token sweep** — `grep` por marcas do boilerplate e adaptar/remover. Tokens:
+   `uv run`, `pytest`, `factory boy`, `pyright`, `ty check`, `htmx`/`hx-`, e *path-isms*
+   (`apps/<app>`, `config/celery`, `config.settings`). Trocar pelo equivalente do destino
+   (ex.: `uv run`→`venv`/`pip`; `pytest`+Factory Boy→o test runner real; `apps/`→o layout
+   real). **Remover** skills sem aderência (ex.: `htmx-patterns` se não há HTMX;
+   `pytest-django-patterns` se o projeto usa `unittest`/outro framework).
+2. **Conflitos de convenção (artefatos de workflow)** — `ticket`, `github-workflow`,
+   `code-reviewer`, `pr-review`, `pr-summary`, `worktree-commit-merge` codificam as
+   convenções de git/PR do boilerplate (branch `{initials}/{desc}`, PR `type(scope):`,
+   `Co-Authored-By` embutido, merge direto na `main`). **Conferir contra o `CLAUDE.md` do
+   destino** e adaptar: naming de branch, formato de título de PR, regra de aprovação de
+   commit, proibição de `Co-Authored-By`, flags de PR. Remover o que conflita de forma
+   irreconciliável (ex.: `worktree-commit-merge` em projeto que só usa fluxo de PR).
+3. **Remover o banner** de cada artefato validado e marcar `[x]` no `SEEDED.md` (incluir
+   uma seção "Removidos" para o que foi descartado, com o motivo).
+
+### 10. Índice no `CLAUDE.md` do destino
+
+Adicionar (ou atualizar) no `CLAUDE.md` do destino um índice **"Artefatos de IA"** com
+**link relativo para cada artefato** validado (skills, agents, commands, guias, docs de
+processo). Registrar a **regra**: todo artefato novo/removido deve ser refletido no índice
+no mesmo PR. Validar os links: `grep -oE '\]\(([^)]+)\)' CLAUDE.md` e conferir que cada
+caminho existe.
+
+### 11. `.gitignore`
+
+Garantir que `.claude/settings.local.json` (override pessoal) está no `.gitignore` do
+destino — nunca versionar.
 
 ## Notas de design
 
@@ -163,3 +209,8 @@ próximos passos:
 - Skills Django são copiadas mesmo em repos não-Django (decisão do usuário); o banner +
   checklist deixam explícito que precisam ser validadas ou removidas.
 - O tmpdir do clone é sempre removido ao final.
+- **Copiar ≠ validar.** A cópia é mecânica; o valor está no Passo 9 — adaptar à stack e às
+  convenções do destino. Banner que fica para sempre = artefato órfão; o objetivo é
+  removê-lo após validar.
+- **Configs/hooks raramente entram como estão** — `includeCoAuthoredBy`, hooks `uv` e MCP
+  irrestrito costumam conflitar; o caminho padrão é "pular" ou "instalar adaptado".
