@@ -167,6 +167,18 @@
         ]
       }
     },
+    "upstream-artifacts": {
+      "description": "Envia melhorias do .claude de um repo destino de volta ao claude-code-django (PR)",
+      "priority": 6,
+      "triggers": {
+        "keywords": ["upstream", "contribuir", "atualizar", "boilerplate", "devolver", "claude-code-django"],
+        "keywordPatterns": ["\\bupstream\\b", "\\bcontribuir\\b", "\\bupstream.?artifacts\\b"],
+        "intentPatterns": [
+          "(?:enviar|contribuir|devolver|atualizar).*(?:artefatos|skills|claude-code-django|boilerplate)",
+          "(?:atualizar|update).*(?:claude-code-django|boilerplate)"
+        ]
+      }
+    },
     "documentation": {
       "description": "Documentation and docstrings",
       "priority": 3,
